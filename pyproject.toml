@@ -1,0 +1,14 @@
+[project]
+name = "abdullah-openclaw"
+version = "0.1.0"
+description = "A from-scratch agent system, learning by rebuilding OpenClaw, one file at a time."
+readme = "README.md"
+requires-python = ">=3.11"
+
+# Stage 1 only needs two things: an LLM client and a way to load a .env file.
+# Every later dependency will arrive when the code that needs it does.
+dependencies = [
+    "litellm>=1.0.0",
+    "python-dotenv>=1.0.0",
+    "pyyaml>=6.0.0",
+]

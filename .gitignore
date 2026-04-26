@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.env
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# uv
+.uv/
+uv.lock
+
+# Editor
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+
+# Workspace user secrets — never commit
+default_workspace/config.user.yaml
+
+# Sessions and runtime artifacts (added in later stages)
+default_workspace/sessions/
+default_workspace/.cache/
