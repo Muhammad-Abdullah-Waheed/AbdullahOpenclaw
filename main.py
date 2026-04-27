@@ -6,6 +6,15 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from agent import Session
+from compaction import maybe_compact
+from session_store import (
+    load_transcript,
+    persistence_enabled,
+    save_transcript,
+    session_id_from_env,
+    session_path,
+)
+from slash_commands import ReplState, handle_slash, parse_slash_line
 from skills import (
     Skill,
     build_system_prompt,
@@ -64,7 +73,24 @@ def main() -> None:
 
     always_skills = load_skills(always_ids)
     initial = build_system_prompt(BASE_SYSTEM_PROMPT, always_skills)
-    session = Session(system_prompt=initial)
+
+    sid = session_id_from_env()
+    spath = session_path(sid)
+    loaded = load_transcript(spath) if persistence_enabled() else None
+    if loaded:
+        session = Session.from_transcript(loaded)
+        session.set_system_prompt(initial)
+        logger.info(
+            "session: resumed id=%s path=%s messages=%s",
+            sid,
+            spath,
+            len(session.messages),
+        )
+    else:
+        session = Session(system_prompt=initial)
+        logger.info("session: new id=%s path=%s", sid, spath)
+
+    state = ReplState(session=session, sid=sid, spath=spath, initial=initial)
 
     logger.info(
         "skills: mode=%s always=%s pool=%s profiles=%s",
@@ -79,6 +105,14 @@ def main() -> None:
         
         if not user_input or user_input.lower() in {"quit", "exit", "q"}:
             break
+
+        parsed = parse_slash_line(user_input)
+        if parsed is not None:
+            name, args = parsed
+            outcome = handle_slash(name, args, state=state, persist=persistence_enabled())
+            if outcome == "break":
+                break
+            continue
 
         active = list(always_skills)
         if mode in {"auto", "both"}:
@@ -99,9 +133,15 @@ def main() -> None:
             seen.add(s.id)
             deduped.append(s)
 
-        session.set_system_prompt(build_system_prompt(BASE_SYSTEM_PROMPT, deduped))
-        reply = session.chat(user_input)
+        state.session.set_system_prompt(build_system_prompt(BASE_SYSTEM_PROMPT, deduped))
+        reply = state.session.chat(user_input)
         print("Assistant:", reply, "\n")
+        if persistence_enabled():
+            save_transcript(state.spath, state.session.messages)
+        if maybe_compact(state.session.messages):
+            logger.info("compaction: transcript shortened to fit budget")
+            if persistence_enabled():
+                save_transcript(state.spath, state.session.messages)
 
 
 if __name__ == "__main__":

@@ -24,4 +24,5 @@ default_workspace/config.user.yaml
 
 # Sessions and runtime artifacts (added in later stages)
 default_workspace/sessions/
+sessions/
 default_workspace/.cache/

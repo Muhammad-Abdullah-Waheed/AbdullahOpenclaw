@@ -7,6 +7,7 @@ instead of growing `if name == ...` forever.
 from __future__ import annotations
 
 import ast
+import copy
 import json
 import logging
 import os
@@ -287,6 +288,15 @@ def run_tool(name: str, arguments_json: str) -> str:
 class Session:
     def __init__(self, system_prompt: str) -> None:
         self.messages: list[dict] = [{"role": "system", "content": system_prompt}]
+
+    @classmethod
+    def from_transcript(cls, messages: list[dict]) -> Session:
+        """Restore a session from a saved message list (must start with a system message)."""
+        if not messages or messages[0].get("role") != "system":
+            raise ValueError("Transcript must be non-empty and start with role=system.")
+        s = cls.__new__(cls)
+        s.messages = copy.deepcopy(messages)
+        return s
 
     def set_system_prompt(self, system_prompt: str) -> None:
         """Replace the first system message in-place (keeps conversation history intact).
