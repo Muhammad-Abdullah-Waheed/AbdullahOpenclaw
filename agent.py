@@ -17,6 +17,9 @@ from typing import Any, Callable
 
 from litellm import completion
 
+from search_tools import WEB_SEARCH_TOOL, handle_web_search
+from web_tools import FETCH_URL_TOOL, handle_fetch_url
+
 # --- logging (Lesson 5: hygiene) ---
 
 logger = logging.getLogger("abdullah_openclaw")
@@ -94,6 +97,8 @@ TOOLS: list[dict] = [
             },
         },
     },
+    WEB_SEARCH_TOOL,
+    FETCH_URL_TOOL,
 ]
 
 
@@ -261,6 +266,8 @@ def handle_word_count(args: dict[str, Any]) -> str:
 HANDLERS: dict[str, ToolHandler] = {
     "calculator": handle_calculator,
     "word_count": handle_word_count,
+    "web_search": handle_web_search,
+    "fetch_url": handle_fetch_url,
 }
 
 
