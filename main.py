@@ -6,7 +6,6 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from agent import Session
-from compaction import maybe_compact
 from session_store import (
     load_transcript,
     persistence_enabled,
@@ -14,7 +13,15 @@ from session_store import (
     session_id_from_env,
     session_path,
 )
-from slash_commands import ReplState, handle_slash, parse_slash_line
+from events import (
+    AssistantReplyFinished,
+    ReplStarted,
+    SessionEnding,
+    SlashCommandHandled,
+    UserTurnReceived,
+)
+from event_bus import EventBus
+from repl_observers import wire_default_observers
 from skills import (
     Skill,
     build_system_prompt,
@@ -22,6 +29,8 @@ from skills import (
     load_skills,
     select_skills_for_user_text,
 )
+
+from slash_commands import ReplState, handle_slash, parse_slash_line
 
 logger = logging.getLogger(__name__)
 
@@ -92,6 +101,17 @@ def main() -> None:
 
     state = ReplState(session=session, sid=sid, spath=spath, initial=initial)
 
+    bus = EventBus()
+    wire_default_observers(bus, state)
+    bus.publish(
+        ReplStarted(
+            session_id=sid,
+            skill_attach_mode=mode,
+            always_skill_ids=tuple(s.id for s in always_skills),
+            profile_tags=tuple(active_profiles),
+        )
+    )
+
     logger.info(
         "skills: mode=%s always=%s pool=%s profiles=%s",
         mode,
@@ -104,13 +124,16 @@ def main() -> None:
         user_input = input("You: ").strip()
         
         if not user_input or user_input.lower() in {"quit", "exit", "q"}:
+            bus.publish(SessionEnding(state.sid, "eof_or_quit"))
             break
 
         parsed = parse_slash_line(user_input)
         if parsed is not None:
             name, args = parsed
             outcome = handle_slash(name, args, state=state, persist=persistence_enabled())
+            bus.publish(SlashCommandHandled(state.sid, name, tuple(args), outcome))
             if outcome == "break":
+                bus.publish(SessionEnding(state.sid, "slash_quit"))
                 break
             continue
 
@@ -133,15 +156,16 @@ def main() -> None:
             seen.add(s.id)
             deduped.append(s)
 
+        always_ids_set = {s.id for s in always_skills}
+        auto_skill_ids = tuple(s.id for s in deduped if s.id not in always_ids_set)
+        bus.publish(UserTurnReceived(state.sid, user_input, auto_skill_ids))
+
         state.session.set_system_prompt(build_system_prompt(BASE_SYSTEM_PROMPT, deduped))
         reply = state.session.chat(user_input)
         print("Assistant:", reply, "\n")
-        if persistence_enabled():
-            save_transcript(state.spath, state.session.messages)
-        if maybe_compact(state.session.messages):
-            logger.info("compaction: transcript shortened to fit budget")
-            if persistence_enabled():
-                save_transcript(state.spath, state.session.messages)
+        bus.publish(
+            AssistantReplyFinished(state.sid, reply, len(state.session.messages)),
+        )
 
 
 if __name__ == "__main__":
