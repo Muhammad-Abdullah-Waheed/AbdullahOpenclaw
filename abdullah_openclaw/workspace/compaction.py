@@ -164,7 +164,7 @@ def _llm_summarize_middle(middle: list[dict[str, Any]]) -> str:
     """Optional second call: compress ``middle`` into short prose (may cost tokens)."""
     from litellm import completion
 
-    from agent import LLM_MODEL, get_llm_api_key
+    from abdullah_openclaw.core.agent import LLM_MODEL, get_llm_api_key
 
     model = (os.environ.get("COMPACTION_SUMMARY_MODEL") or LLM_MODEL).strip()
     timeout_s = float((os.environ.get("LLM_TIMEOUT_SECONDS") or "60").strip())

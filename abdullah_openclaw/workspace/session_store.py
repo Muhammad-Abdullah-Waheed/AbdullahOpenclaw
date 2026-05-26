@@ -11,7 +11,7 @@ import re
 from pathlib import Path
 from typing import Any
 
-from skills import workspace_dir
+from abdullah_openclaw.workspace.skills import workspace_dir
 
 _SESSION_ID_RE = re.compile(r"[^a-zA-Z0-9._-]+")
 

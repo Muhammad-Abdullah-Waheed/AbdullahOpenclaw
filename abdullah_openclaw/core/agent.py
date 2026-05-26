@@ -17,8 +17,8 @@ from typing import Any, Callable
 
 from litellm import completion
 
-from search_tools import WEB_SEARCH_TOOL, handle_web_search
-from web_tools import FETCH_URL_TOOL, handle_fetch_url
+from abdullah_openclaw.integrations.search_tools import WEB_SEARCH_TOOL, handle_web_search
+from abdullah_openclaw.integrations.web_tools import FETCH_URL_TOOL, handle_fetch_url
 
 # --- logging (Lesson 5: hygiene) ---
 

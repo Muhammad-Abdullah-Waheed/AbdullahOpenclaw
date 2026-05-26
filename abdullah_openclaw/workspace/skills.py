@@ -17,6 +17,8 @@ from typing import Any
 
 import yaml
 
+from abdullah_openclaw.paths import REPO_ROOT
+
 
 @dataclass(frozen=True)
 class Skill:
@@ -33,8 +35,8 @@ class Skill:
 
 
 def default_workspace_dir() -> Path:
-    """Workspace root on disk (defaults to ./default_workspace next to this file)."""
-    return (Path(__file__).resolve().parent / "default_workspace").resolve()
+    """Workspace root on disk (``<repo>/default_workspace`` unless WORKSPACE_DIR is set)."""
+    return (REPO_ROOT / "default_workspace").resolve()
 
 
 def workspace_dir() -> Path:

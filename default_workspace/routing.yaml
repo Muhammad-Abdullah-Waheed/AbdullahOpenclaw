@@ -1,0 +1,4 @@
+# Stage 12 — bindings route full source strings like platform-cli, platform-ws:test, ...
+# See Slash /route, /bindings, /agents — OpenClaw step 11 "Multi-Agent Routing".
+default_agent: pickle
+bindings: []

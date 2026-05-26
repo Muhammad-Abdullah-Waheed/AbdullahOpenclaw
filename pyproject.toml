@@ -1,19 +1,34 @@
+[build-system]
+requires = ["hatchling>=1.24.0"]
+build-backend = "hatchling.build"
+
 [project]
 name = "abdullah-openclaw"
 version = "0.1.0"
 description = "A from-scratch agent system, learning by rebuilding OpenClaw, one file at a time."
 readme = "README.md"
 requires-python = ">=3.11"
-
 # Stage 1 only needs two things: an LLM client and a way to load a .env file.
 # Every later dependency will arrive when the code that needs it does.
 dependencies = [
+    "fastapi>=0.115.0",
     "litellm>=1.0.0",
     "python-dotenv>=1.0.0",
+    "python-telegram-bot>=20.0",
     "pyyaml>=6.0.0",
     "tavily-python>=0.5.0",
+    "uvicorn[standard]>=0.32.0",
+    "watchdog>=3",
 ]
 
 [project.optional-dependencies]
 # Playwright-based rendering (large). After install, you may need: playwright install
 crawl = ["crawl4ai>=0.4.0"]
+
+[project.scripts]
+openclaw = "abdullah_openclaw.apps.cli:main"
+openclaw-telegram = "abdullah_openclaw.apps.telegram:main"
+openclaw-ws = "abdullah_openclaw.apps.websocket:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["abdullah_openclaw"]

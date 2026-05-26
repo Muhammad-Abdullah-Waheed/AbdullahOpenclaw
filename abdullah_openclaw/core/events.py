@@ -1,6 +1,7 @@
 """Typed events for the REPL runtime (Stage 8).
 
-OpenClaw’s reference stack (see ``build-your-own-openclaw/08-config-hot-reload``) uses an
+OpenClaw’s reference stack (steps such as ``build-your-own-openclaw/10-websocket``, ``09-channels``,
+and ``08-config-hot-reload``) uses an
 :class:`EventBus` so *channels*, *cron*, and the *CLI* can all feed the agent through the
 same pipeline. Events are immutable facts (“something happened”); subscribers react.
 
@@ -21,6 +22,7 @@ class ReplStarted:
     skill_attach_mode: str
     always_skill_ids: tuple[str, ...]
     profile_tags: tuple[str, ...]
+    agent_id: str = "pickle"
 
 
 @dataclass(frozen=True)
@@ -49,6 +51,14 @@ class SlashCommandHandled:
     name: str
     args: tuple[str, ...] = ()
     outcome: str = "continue"
+
+
+@dataclass(frozen=True)
+class ConfigReloaded:
+    """``.env`` and/or workspace skills changed; prompts were rebuilt before next input."""
+
+    session_id: str
+    reason: str
 
 
 @dataclass(frozen=True)

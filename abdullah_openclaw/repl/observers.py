@@ -4,17 +4,18 @@ from __future__ import annotations
 
 import logging
 
-from compaction import maybe_compact
-from events import (
+from abdullah_openclaw.workspace.compaction import maybe_compact
+from abdullah_openclaw.core.events import (
     AssistantReplyFinished,
+    ConfigReloaded,
     ReplStarted,
     SessionEnding,
     SlashCommandHandled,
     UserTurnReceived,
 )
-from event_bus import EventBus
-from session_store import persistence_enabled, save_transcript
-from slash_commands import ReplState
+from abdullah_openclaw.core.event_bus import EventBus
+from abdullah_openclaw.workspace.session_store import persistence_enabled, save_transcript
+from abdullah_openclaw.repl.slash import ReplState
 
 logger = logging.getLogger(__name__)
 
@@ -24,8 +25,9 @@ def wire_default_observers(bus: EventBus, state: ReplState) -> None:
 
     def on_started(ev: ReplStarted) -> None:
         logger.info(
-            "event: ReplStarted session=%s mode=%s always=%s profiles=%s",
+            "event: ReplStarted session=%s agent=%s mode=%s always=%s profiles=%s",
             ev.session_id,
+            ev.agent_id,
             ev.skill_attach_mode,
             ev.always_skill_ids,
             ev.profile_tags,
@@ -63,8 +65,16 @@ def wire_default_observers(bus: EventBus, state: ReplState) -> None:
     def on_session_ending(ev: SessionEnding) -> None:
         logger.info("event: SessionEnding session=%s reason=%s", ev.session_id, ev.reason)
 
+    def on_config_reloaded(ev: ConfigReloaded) -> None:
+        logger.info(
+            "event: ConfigReloaded session=%s reason=%s",
+            ev.session_id,
+            ev.reason,
+        )
+
     bus.subscribe(ReplStarted, on_started)
     bus.subscribe(UserTurnReceived, on_user_turn)
     bus.subscribe(SlashCommandHandled, on_slash)
     bus.subscribe(AssistantReplyFinished, on_assistant)
     bus.subscribe(SessionEnding, on_session_ending)
+    bus.subscribe(ConfigReloaded, on_config_reloaded)

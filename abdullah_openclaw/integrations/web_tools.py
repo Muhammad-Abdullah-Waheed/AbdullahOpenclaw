@@ -19,7 +19,7 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urlparse
 from urllib.request import Request, urlopen
 
-from web_fetch_cache import (
+from abdullah_openclaw.integrations.web_fetch_cache import (
     cache_enabled,
     load_entry_for_revalidate,
     normalize_cache_key,
@@ -199,7 +199,7 @@ def fetch_url_text(url: str) -> str:
 
 def _fetch_via_crawl4ai(url: str, url_key: str, timeout: float) -> str:
     try:
-        from crawl_read import fetch_markdown
+        from abdullah_openclaw.integrations.crawl_read import fetch_markdown
     except ImportError as e:
         return f"ERROR: crawl4ai support missing ({e})"
 

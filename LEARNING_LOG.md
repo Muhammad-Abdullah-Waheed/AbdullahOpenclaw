@@ -5,6 +5,10 @@ Goal: internalize the *why* behind every design decision so I can build producti
 agent systems independently. Approach: **organic** — the architecture emerges as pain
 demands it, not by upfront declaration.
 
+**Where the code lives now:** Sources are grouped under the `abdullah_openclaw/` installable
+package (see `README.md` for the tree). Stage notes below still refer to *roles* (e.g. the
+CLI runner, skills loader); paths in the tree have names like `apps/cli.py`, `workspace/skills.py`.
+
 ---
 
 ## Stage 0 — Architectural Mental Model
